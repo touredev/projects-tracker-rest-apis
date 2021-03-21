@@ -38,10 +38,40 @@ class ViewTestCase(TestCase):
         self.client = APIClient()
         self.project_data = {'title': 'Jobs board App', 'description': 'A search engine for jobs seekers', 'started_at': '2016-03-01 08:00:00', 'tags': [tag_one.id, tag_two.id]}
         self.response = self.client.post(
-            reverse('create-project'),
+            reverse('projects-list'),
             self.project_data,
             format=None)
 
     def test_api_can_create_a_project(self):
         """Test the api has project creation capability."""
         self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+
+    def test_api_can_get_a_project(self):
+        """Test the api can get a given project."""
+        project = Project.objects.get()
+        response = self.client.get(
+            reverse('projects-detail',
+            kwargs={'pk': project.id}), format=None)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, project)
+
+    def test_api_can_update_project(self):
+        """Test the api can update a given project."""
+        project = Project.objects.get()
+        change_project = {'title': 'New project', 'description': 'New description'}
+        res = self.client.put(
+            reverse('projects-detail', kwargs={'pk': project.id}),
+            change_project, format=None
+        )
+        self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED)
+
+    def test_api_can_delete_project(self):
+        """Test the api can delete a project."""
+        project = Project.objects.get()
+        response = self.client.delete(
+            reverse('projects-detail', kwargs={'pk': project.id}),
+            format=None,
+            follow=True)
+
+        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)

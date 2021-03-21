@@ -1,9 +1,12 @@
 from django.urls import path
-from .views import ProjectGenericAPIView, TagGenericAPIView
+from rest_framework import routers
+from .views import ProjectViewSet, TagGenericAPIView
 
+router = routers.DefaultRouter()
+router.register(r'projects', ProjectViewSet, basename='projects')
 
 urlpatterns = [
-    path('projects', ProjectGenericAPIView.as_view(), name="create-project"),
     path('tags', TagGenericAPIView.as_view()),
-
 ]
+
+urlpatterns += router.urls

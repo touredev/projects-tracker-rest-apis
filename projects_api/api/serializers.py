@@ -18,6 +18,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     """Serializer to map the Model instance into JSON format."""
     tags = TagRelatedField(many=True, required=False)
 
+
     class Meta:
         """Meta class to map serializer's fields with the model fields."""
         model = Project
@@ -30,5 +31,16 @@ class ProjectSerializer(serializers.ModelSerializer):
         instance.save()
         instance.tags.add(*tags)
         instance.save()
+        return instance
+
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if tags is not None:
+            instance.tags.clear()
+            instance.tags.add(*tags)
+            instance.save()
         return instance
 
