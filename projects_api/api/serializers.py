@@ -17,12 +17,12 @@ class TagRelatedField(serializers.StringRelatedField):
 class ProjectSerializer(serializers.ModelSerializer):
     """Serializer to map the Model instance into JSON format."""
     tags = TagRelatedField(many=True, required=False)
-
+    owner = serializers.ReadOnlyField(source='owner.username')
 
     class Meta:
         """Meta class to map serializer's fields with the model fields."""
         model = Project
-        fields = ['id', 'title', 'description', 'status', 'started_at', 'ended_at', 'created_at', 'updated_at', 'tags']
+        fields = ['id', 'title', 'description', 'status', 'started_at', 'ended_at', 'created_at', 'updated_at', 'owner', 'tags']
         read_only_fields = ['created_at', 'updated_at']
 
     def create(self, validated_data):
@@ -43,4 +43,3 @@ class ProjectSerializer(serializers.ModelSerializer):
             instance.tags.add(*tags)
             instance.save()
         return instance
-

@@ -28,6 +28,7 @@ class Project(models.Model):
     tags = models.ManyToManyField(Tag, blank=True)
     started_at = models.DateTimeField(blank=True, null=True)
     ended_at = models.DateTimeField(blank=True, null=True)
+    owner = models.ForeignKey('auth.User', models.SET_NULL, related_name='projects', blank=True, null=True) 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
