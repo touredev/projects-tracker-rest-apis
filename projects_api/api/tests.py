@@ -37,8 +37,7 @@ class ViewTestCase(APITestCase):
         """Define the test client and other test variables."""
         self.uri = reverse('projects-list')
         self.user = self.setup_user()
-        self.token = self.get_user_token(self.user)
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        self.client.force_authenticate(user=self.user)
         
         tag_one = Tag.objects.create(name="REST")
         tag_two = Tag.objects.create(name="APIs")
@@ -61,13 +60,6 @@ class ViewTestCase(APITestCase):
             password='django2021'
         )
         
-    @staticmethod
-    def get_user_token(user):
-        try:
-            token = Token.objects.get(user_id=user.id)
-        except Token.DoesNotExist:
-            token = Token.objects.create(user=user)
-        return token
         
     def test_api_can_create_a_project(self):
         """Test the api has project creation capability."""
