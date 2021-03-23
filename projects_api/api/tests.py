@@ -1,8 +1,9 @@
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from django.urls import reverse
 from django.test import TestCase
 from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 from .models import Project, Tag
 # Create your tests here.
 
@@ -29,35 +30,60 @@ class ModelTestCase(TestCase):
         self.assertEqual(self.project.tags.all().count(), 2)
 
 
-
-class ViewTestCase(TestCase):
+class ViewTestCase(APITestCase):
     """Test suite for the api views."""
 
     def setUp(self):
         """Define the test client and other test variables."""
-        user = User.objects.create(username="jeantoure")
+        self.uri = reverse('projects-list')
+        self.user = self.setup_user()
+        self.token = self.get_user_token(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        
         tag_one = Tag.objects.create(name="REST")
         tag_two = Tag.objects.create(name="APIs")
-
-        self.client = APIClient()
-        self.client.force_authenticate(user=user)
-
-        self.project_data = {'title': 'Jobs board App', 'description': 'A search engine for jobs seekers', 'started_at': '2016-03-01 08:00:00', 'tags': [tag_one.id, tag_two.id], 'owner': user.id}
-        self.response = self.client.post(
-            reverse('projects-list'),
-            self.project_data,
-            format="json")
-
+        params = {
+            'title': 'Jobs board App',
+            'description': 'A search engine for jobs seekers',
+            'started_at': '2016-03-01 08:00:00',
+            'tags': [tag_one.id, tag_two.id],
+            'owner': self.user.id
+        }
+        
+        self.response = self.client.post(self.uri, params, format="json")
+        
+        
+    @staticmethod
+    def setup_user():
+        return User.objects.create_user(
+            'djangouser',
+            email='jeantoure@test.com',
+            password='django2021'
+        )
+        
+    @staticmethod
+    def get_user_token(user):
+        try:
+            token = Token.objects.get(user_id=user.id)
+        except Token.DoesNotExist:
+            token = Token.objects.create(user=user)
+        return token
+        
     def test_api_can_create_a_project(self):
         """Test the api has project creation capability."""
         self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
-
+        
+    def test_api_can_get_projects_list(self):
+        """Test the api can projects list."""
+        response = self.client.get(self.uri)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
     def test_authorization_is_enforced(self):
-        """Test that the api has user authorization."""
+        """Test that the api has user authentication."""
         new_client = APIClient()
-        res = new_client.get(reverse('projects-detail', kwargs={'pk': 3}),
-            format="json")
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        res = new_client.get(self.uri)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
 
     def test_api_can_get_a_project(self):
         """Test the api can get a given project."""
@@ -72,10 +98,10 @@ class ViewTestCase(TestCase):
     def test_api_can_update_project(self):
         """Test the api can update a given project."""
         project = Project.objects.get()
-        change_project = {'title': 'New project', 'description': 'New description'}
+        params = {'title': 'New project', 'description': 'New description'}
         res = self.client.put(
             reverse('projects-detail', kwargs={'pk': project.id}),
-            change_project, format="json"
+            params, format="json"
         )
         self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED)
 
@@ -86,5 +112,4 @@ class ViewTestCase(TestCase):
             reverse('projects-detail', kwargs={'pk': project.id}),
             format="json",
             follow=True)
-
         self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
