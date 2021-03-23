@@ -2,10 +2,19 @@
 from rest_framework import generics, status, viewsets, permissions
 from .permissions import IsOwner
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework.reverse import reverse
 from .serializers import ProjectSerializer, TagSerializer
 from .models import Project, Tag
 
 
+@api_view(['GET'])
+def api_root(request, format=None):
+    return Response({
+        'projects': reverse('projects-list', request=request, format=format),
+        'tags': reverse('tags-list', request=request, format=format)
+    })
+    
 class TagGenericAPIView(generics.ListCreateAPIView):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -56,7 +65,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def update(self, request, pk=None):
         project = Project.objects.get(id=pk)
-        serializer = ProjectSerializer(instance=project, data=request.data)
+        serializer = ProjectSerializer(instance=project, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
