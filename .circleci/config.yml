@@ -10,7 +10,6 @@ jobs:
           POSTGRESQL_PASSWORD: toure
           POSTGRESQL_HOST: localhost
           POSTGRESQL_PORT: 5432
-          SECRET_KEY: "ers*j_zo20gv35#8=7^4dqka-ga6_6asb$nib+d=j=^basuq2l"
       - image: circleci/postgres:9.6.5-alpine-ram
         auth:
           username: mydockerhub-user
