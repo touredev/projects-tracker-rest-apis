@@ -4,6 +4,20 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/python:3.8.5
+        environment:
+          PROJECTS_TRACKER_DB_NAME: projects_tracker_db
+          POSTGRESQL_USER: toure
+          POSTGRESQL_PASSWORD: toure
+          POSTGRESQL_HOST: localhost
+          POSTGRESQL_PORT: 5432
+      - image: circleci/postgres:9.6.5-alpine-ram
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+        environment:
+          POSTGRES_USER: toure
+          POSTGRES_PASSWORD: toure
+          POSTGRES_DB: projects_tracker_db
 
     working_directory: ~/repo
 
